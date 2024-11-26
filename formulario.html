@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulário de Funcionário</title>
+  <!-- Inclusão do Bootstrap para estilização e responsividade -->
+  <link href="bootstrap-5.3.3/dist/css/bootstrap.css" rel="stylesheet">
+  <script src="bootstrap-5.3.3/dist/js/bootstrap.js"></script>
+</head>
+<body>
+  <div class="container my-4">
+    <!-- Título do formulário -->
+    <h1 class="text-center mb-4" id="form-title">Cadastro de Funcionário</h1>
+    <!-- Botão para retornar à página de listagem -->
+    <button class="btn btn-secondary mb-4" onclick="window.location.href='index.html'">Voltar para Listagem</button>
+    
+    <!-- Formulário para cadastro/edição de funcionário -->
+    <form id="funcionario-form">
+      <!-- Campo para inserção do nome do funcionário -->
+      <div class="mb-3">
+        <label for="nome" class="form-label">Nome</label>
+        <input type="text" class="form-control" id="nome" required autofocus>
+      </div>
+      
+      <!-- Campo para seleção do status do funcionário -->
+      <div class="mb-3">
+        <label for="status" class="form-label">Status</label>
+        <select class="form-select" id="status">
+          <option value="1">Ativo</option>
+          <option value="0">Inativo</option>
+          <option value="2">Aposentado</option>
+        </select>
+      </div>
+
+      <!-- Campo para seleção de usuário associado ao funcionário -->
+      <div class="mb-3">
+        <label for="usuario" class="form-label">Usuário</label>
+        <select class="form-select" id="usuario" required>
+          <option value="">Selecione um Usuário</option>
+        </select>
+      </div>
+
+      <!-- Botão para salvar as informações do funcionário -->
+      <button type="button" class="btn btn-success" onclick="salvarFuncionario()">Salvar</button>
+      <!-- Botão para cancelar a operação -->
+      <button type="button" class="btn btn-danger" onclick="cancelar()">Cancelar</button>
+    </form>
+  </div>
+
+  <script>
+    // URLs da API para funcionários e usuários
+    const urlBase = 'http://localhost:4000/funcionarios';
+    const urlUsuarios = 'http://localhost:4000/usuarios';
+
+    // Carregar usuários disponíveis para o campo de seleção
+    async function carregarUsuarios() {
+      try {
+        const response = await fetch(urlUsuarios);
+        const usuarios = await response.json();
+        
+        const usuarioSelect = document.getElementById('usuario');
+
+        // Adicionar cada usuário como uma opção no campo select
+        usuarios.forEach(usuario => {
+          const option = document.createElement('option');
+          option.value = usuario.id;
+          option.textContent = usuario.nome;
+          usuarioSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+      }
+    }
+
+    // Chamar a função para carregar usuários ao carregar a página
+    carregarUsuarios();    
+
+    // Função para carregar os dados de um funcionário (edição)
+    async function carregarFuncionario(id) {
+      try {
+        const response = await fetch(`${urlBase}/${id}`);
+        const funcionario = await response.json();
+        
+        // Preencher os campos com os dados retornados
+        document.getElementById('nome').value = funcionario.nome;
+        document.getElementById('status').value = funcionario.status;
+        document.getElementById('usuario').value = funcionario.usuario_id; // Supondo que o campo no banco seja 'usuario_id'
+      } catch (error) {
+        console.error('Erro ao carregar dados do funcionário:', error);
+      }
+    }
+
+    // Verificar se existe um ID na URL para edição
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    if (id) {
+      carregarFuncionario(id);  // Caso haja ID, carregar dados do funcionário
+      document.getElementById('form-title').textContent = 'Editar Funcionário';  // Alterar título para "Editar"
+    } else {
+      document.getElementById('form-title').textContent = 'Cadastro de Funcionário';  // Título para novo cadastro
+    }
+
+    // Função para salvar (cadastrar/editar) um funcionário
+    async function salvarFuncionario() {
+      const nome = document.getElementById('nome').value;
+      const status = document.getElementById('status').value;
+      const usuarioId = document.getElementById('usuario').value;
+     
+ 
+
+      // Objeto com os dados do funcionário
+      const funcionarioData = {        
+        nome: nome,
+        status: status,
+        usuario_id: usuarioId, // Inclui o ID do usuário
+        id: id
+      };
+
+      try {
+        let response;
+
+        if (id) {
+          // Atualizar funcionário existente
+          response = await fetch(urlBase, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(funcionarioData),
+          });
+        } else {
+          // Criar novo funcionário
+          response = await fetch(urlBase, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(funcionarioData),
+          });
+        }
+
+        if (response.ok) {
+          alert('Funcionário salvo com sucesso!');
+          window.location.href = 'index.html'; // Redirecionar para a listagem
+        } else {
+          alert('Erro ao salvar o funcionário');
+        }
+      } catch (error) {
+        console.error('Erro ao salvar o funcionário:', error);
+      }
+    }
+
+
+
+
+
+
+
+    // Função para cancelar a operação e voltar à página anterior
+    function cancelar() {
+      if (confirm('Tem certeza que deseja cancelar? Todos os dados não salvos serão perdidos.')) {
+        window.location.href = 'index.html'; // Redirecionar para a listagem
+      }
+    }
+  </script>  
+</body>
+</html>

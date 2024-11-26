@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de funcionarios</title>
+    <link rel="stylesheet" href="bootstrap-5.3.3/dist/css/bootstrap.css">
+    <script src="bootstrap-5.3.3/dist/js/bootstrap.js"></script>
+    <style>
+        .titulo-coluna {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+            margin-top: 20px;
+        }
+
+        .funcionario-card{
+            background-color: gray;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            margin-top: 15px;
+        }
+        .Status{
+            display: flex;
+            
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1> Gerenciamento</h1>
+        <a href="formulario.html" class="btn btn-success">Cadastrar funcionarios</a>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="titulo-coluna">Ativos</div>
+                <div id="ativos">
+
+           
+
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="titulo-coluna">Inativos</div>
+                <div id="inativos">
+
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="titulo-coluna">Aposentados</div>
+                <div id="aposentados">
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+<script>
+   async function carregarFuncionarios() {
+        const url = `http://localhost:4000/funcionarios`;
+        const funcionarios = await fetch(url)
+        .then(response => response.json())
+        .catch(err => console.error('erro ao carregar'));
+        //captura as divs para inserir cards com informação de cada funcionario
+        const ativos = document.getElementById('ativos');
+        const inativos = document.getElementById('inativos');
+        const aposentados = document.getElementById('aposentados');
+
+        // Limpa as divs antes de adicionar novos funcionários
+        ativos.innerHTML = '';
+        inativos.innerHTML = '';
+        aposentados.innerHTML = '';        
+
+        funcionarios.forEach(funcionario => {
+            //cria div e  aiciona a classe funcionario-card nela
+            const div = document.createElement('div');
+            div.className = 'funcionario-card';
+
+            div.innerHTML = `
+                     <div class="funcionario-card">
+                    <strong>ID: ${funcionario.id}</strong><br>
+                    <strong>Nome: ${funcionario.nome}</strong><br>
+                    <div class="mt-3">
+                        <button class="btn btn-primary btn-sm " onclick="editarfuncionario(${funcionario.id})">Editar</button>
+                        <button class="btn btn-danger btn-sm " onclick="excluirFuncionario(${funcionario.id})">Excluir</button>
+                    </div>
+                    <div class="Status mt-2">
+                        <select name="status" id="status-${funcionario.id}" class="form-select form-select-sm me-3" style="width: 130px;">
+                            <option value="1" ${funcionario.status == 1 ? 'selected' : ''}>Ativo</option>
+                            <option value="0" ${funcionario.status == 0 ? 'selected' : ''}>Inativo</option>
+                            <option value="2" ${funcionario.status == 2 ? 'selected' : ''}>Aposentado</option>
+                        </select>
+                        <button class="btn btn-success btn-sm" onclick="alterarStatus(${funcionario.id})">Alterar Status</button>
+                    </div>
+                    </div>
+            `;
+            if(funcionario.status == '1'){
+                ativos.appendChild(div); 
+            }else if(funcionario.status == '0'){
+                inativos.appendChild(div);
+            }else if(funcionario.status == '2'){
+                aposentados.appendChild(div);
+            }
+        })
+    }
+
+    function editarfuncionario(id){
+        // chama a função para editar funcionario
+        window.location.href = `formulario.html?id=${id}`;
+    }
+    async function excluirFuncionario(id) {
+    // chama a função para excluir funcionario
+    if (confirm('deseja excluir este func.')) {
+        try {
+            const response = await fetch(`http://localhost:4000/funcionarios/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                alert('funcionario excluido com sucesso');
+                carregarFuncionarios();
+            } else {
+                alert('erro ao excluir func.');
+            }
+        } catch (error) {
+            console.error('erro ao excluir', error);
+        }
+    }
+}
+
+ // Função para alterar o status de um funcionário
+ async function alterarStatus(id) {
+
+      // Obtém o novo status e o nome do funcionário
+      const status = document.getElementById(`status-${id}`).value;
+      //const usuario_id = document.getElementById(`status-${id}`)
+
+      // Dados que serão enviados à API
+      const data = {
+        status: status,
+        id: id
+      };
+
+      try {
+        const response = await fetch(`http://localhost:4000/funcionarios/status/`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (response.ok) {
+          alert('Status atualizado com sucesso!');
+          carregarFuncionarios(); // Recarrega a lista
+        } else {
+          alert('Erro ao alterar o status!');
+        }
+      } catch (error) {
+        console.error('Erro ao alterar o status:', error);
+      }
+    }
+
+    // Chama a função para carregar os funcionários ao iniciar a página
+    carregarFuncionarios();
+</script>
+
+</html>

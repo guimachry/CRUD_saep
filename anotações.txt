@@ -1,0 +1,5 @@
+- Pasta do bootstrap está compactada. Descompactar a pasta de forma que fique com o nome: bootstrap-5.3.3
+- As rotas para listagem de funcionários, listagem de usuários e edição do funcionários são de teste. 
+- As rotas para excluir funcionário e buscar os dados de um funcionário pelo ID precisam ser configuradas no servidor (arquivo main.ts) conforme arquivo neste repositório.
+- O controle de usuários não existe até o momento no servidor, seria necessário criar a tabela e após rotas de cadastro e listagem dos usuários. De momento pode ser usado a rota de teste para listar os usuários.
+- Ajustem as rotas no front do projeto para comunicar com as rotas do servidor e realizem os testes de funcionamento.
